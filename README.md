@@ -12,7 +12,9 @@ Requires
  * awesome font (optional, usefull for conky)
 
 
-### Sample of how my i3 bar looks
+#### Sample of how my i3 bar looks
+
+When android is connected there is an OK sign next to it, when it's not, a X appears instead.
 
 ![i3bar](https://i.imgur.com/GQCpGMB.png)
 
