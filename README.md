@@ -12,5 +12,10 @@ Requires
  * awesome font (optional, usefull for conky)
 
 
+### Sample of how my i3 bar looks
+
+![i3bar](https://i.imgur.com/GQCpGMB.png)
+
+
 TODO complete
 
