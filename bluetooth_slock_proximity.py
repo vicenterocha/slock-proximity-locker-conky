@@ -6,10 +6,23 @@ import os
 import time
 import subprocess
 import re
+import sqlite3
+from sqlite3 import Error
+from datetime import datetime
 
 PORT = 3  # bluetooth port
 ADDR = 'CC:21:19:CF:F9:F2'  # device bluetooth address - CHANGE THIS
 LOCKER = 'slock'  # system locker - CHANGE THIS
+
+
+def create_connection(db_file):
+    """ create a database connection to a SQLite database """
+    try:
+        conn = sqlite3.connect(db_file)
+        # print(sqlite3.version)
+        return conn
+    except Error as e:
+        print(e)
 
 
 def send_message(message):
@@ -48,31 +61,51 @@ def proximity_check():
     return proximity[0]
 
 
-# while True:
-# blindly tries to connect everytime (TODO smooth)
+def send_notification(title, body):
+    """
+    sends notification using pushbullet
+    """
+    ps = subprocess.Popen(['/home/vicente/.i3/pushbullet/notify.sh', '-t', title, '-b', body], stdout=subprocess.PIPE)
+
+    return
+
+
+conn = create_connection("bluetooth.db")
+conn.close()
+
 try:
-    s = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-    s.connect((ADDR, PORT))
+    if not connection_check():
+        s = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+        s.connect((ADDR, PORT))
 except bluetooth.btcommon.BluetoothError as err:
     pass
 
 if connection_check():
-    print('  ')
-    if proximity_check() < 0:
+    prox = proximity_check()
+    if prox < -5:
         print('  ')
         send_message('Too far away. Locking device..')
-        time.sleep(5)
+        time.sleep(4)
         ps = subprocess.Popen(['pgrep', LOCKER], stdout=subprocess.PIPE)
         ps = ps.communicate()[0].decode('utf-8')
-        if not ps:  # check if locker has already been invoked, so it doesn't invoke infinite lockers
+        if not ps:  # if locker has already been invoked, so it doesn't invoke infinite lockers
+            send_notification('LOCKED', 'Too far away ' + str(prox))
+            time.sleep(1)  # without it notification would only arrive after unlock
             ps = subprocess.Popen([LOCKER], stdout=subprocess.PIPE)
+    else:
+        print('  ')
 else:
     send_message('Not connected.. Locking device..')
-    print('  ')
-    time.sleep(5)
+    time.sleep(4)
     ps = subprocess.Popen(['pgrep', LOCKER], stdout=subprocess.PIPE)
     ps = ps.communicate()[0].decode('utf-8')
     if not ps:  # check if locker has already been invoked, so it doesn't invoke infinite lockers
-        ps = subprocess.Popen([LOCKER], stdout=subprocess.PIPE)
+        if not connection_check():
+            print('  ')
+            send_notification('LOCKED', 'No connection')
+            time.sleep(1)  # hammered fix - without it notification would only arrive after unlock
+            ps = subprocess.Popen([LOCKER], stdout=subprocess.PIPE)
+        else:
+            send_notification('LOCKED CANCELLED', 'Connected')
+            print('  ')
 
-# time.sleep(5)
