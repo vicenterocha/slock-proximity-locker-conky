@@ -19,5 +19,8 @@ When android is connected there is an OK sign next to it, when it's not, a X app
 ![i3bar](https://i.imgur.com/GQCpGMB.png)
 
 
-TODO complete
+TODO
+
+[ ] Refactor
+[ ] Document
 
